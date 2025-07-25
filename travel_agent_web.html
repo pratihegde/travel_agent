@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Voice Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            max-width: 100%;
+            width: 100%;
+            height: 80vh;
+            min-height: 500px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .chat-container {
+            flex: 1;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            border: 2px solid #e9ecef;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding-right: 10px;
+        }
+
+        .message {
+            margin: 8px 0;
+            padding: 10px 14px;
+            border-radius: 18px;
+            max-width: 85%;
+            animation: slideIn 0.3s ease;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+        }
+
+        .message.agent {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+            align-self: flex-start;
+        }
+
+        .message.typing {
+            background: #e9ecef;
+            color: #666;
+            font-style: italic;
+            align-self: flex-start;
+        }
+
+        .typing-dots {
+            display: inline-block;
+            width: 40px;
+        }
+
+        .typing-dots::after {
+            content: '•••';
+            animation: typing 1.5s infinite;
+        }
+
+        @keyframes typing {
+            0%, 20% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .input-area {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .message-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button, .voice-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 50px;
+        }
+
+        .send-button:hover, .voice-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-button:disabled, .voice-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .voice-button.recording {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3); }
+            50% { box-shadow: 0 4px 25px rgba(255, 107, 107, 0.6); }
+            100% { box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3); }
+        }
+
+        .status {
+            text-align: center;
+            padding: 8px;
+            border-radius: 8px;
+            margin: 8px 0;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+
+        .status.connected {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.connecting {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .quick-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0;
+        }
+
+        .suggestion {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 4px 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .suggestion:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .new-tab-button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            margin: 5px auto;
+            display: block;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .new-tab-button:hover {
+            background: #218838;
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 768px) {
+            .container {
+                height: 90vh;
+                padding: 15px;
+                border-radius: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+            }
+            
+            .message {
+                font-size: 0.85em;
+                max-width: 90%;
+            }
+            
+            .suggestion {
+                font-size: 11px;
+                padding: 3px 8px;
+            }
+        }
+
+        /* Iframe optimizations */
+        @media (max-width: 600px) {
+            body {
+                padding: 5px;
+            }
+            
+            .container {
+                height: 95vh;
+                padding: 10px;
+            }
+            
+            .header {
+                margin-bottom: 10px;
+            }
+            
+            .chat-container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙️ Travel Voice Agent</h1>
+            <p>Your AI travel companion with voice and text chat</p>
+            <a href="#" id="newTabButton" class="new-tab-button" style="display:none;" target="_blank">
+                🚀 Open Full Experience
+            </a>
+        </div>
+
+        <div id="status" class="status connecting">
+            🔄 Connecting to Travel Agent...
+        </div>
+
+        <div class="chat-container">
+            <div id="messages" class="messages">
+                <!-- Messages will appear here -->
+            </div>
+
+            <div class="quick-suggestions">
+                <div class="suggestion" onclick="sendSuggestion('Plan a trip to Japan')">Plan trip to Japan</div>
+                <div class="suggestion" onclick="sendSuggestion('Best time to visit Europe')">Best time for Europe</div>
+                <div class="suggestion" onclick="sendSuggestion('Budget travel tips')">Budget tips</div>
+                <div class="suggestion" onclick="sendSuggestion('Family vacation ideas')">Family vacation</div>
+            </div>
+
+            <div class="input-area">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    class="message-input" 
+                    placeholder="Ask me about your next adventure..."
+                    disabled
+                >
+                <button id="voiceButton" class="voice-button" onclick="toggleVoice()" disabled>
+                    🎤
+                </button>
+                <button id="sendButton" class="send-button" onclick="sendMessage()" disabled>
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-detect if running in iframe
+        const isInIframe = window !== window.parent;
+        const WEBSOCKET_URL = 'ws://localhost:8765'; // Replace with your Railway WebSocket URL
+        
+        class TravelAgentChat {
+            constructor() {
+                this.ws = null;
+                this.isConnected = false;
+                this.isRecording = false;
+                this.recognition = null;
+                this.synthesis = window.speechSynthesis;
+                
+                // Elements
+                this.statusEl = document.getElementById('status');
+                this.messagesEl = document.getElementById('messages');
+                this.inputEl = document.getElementById('messageInput');
+                this.sendBtn = document.getElementById('sendButton');
+                this.voiceBtn = document.getElementById('voiceButton');
+                this.newTabBtn = document.getElementById('newTabButton');
+                
+                // Setup iframe handling
+                this.setupIframeHandling();
+                
+                // Initialize
+                this.setupEventListeners();
+                this.initializeSpeechRecognition();
+                this.connect();
+            }
+            
+            setupIframeHandling() {
+                if (isInIframe) {
+                    // Show "Open in new tab" button
+                    this.newTabBtn.style.display = 'block';
+                    this.newTabBtn.href = window.location.href;
+                    
+                    // Reduce voice functionality in iframe
+                    if (this.voiceBtn) {
+                        this.voiceBtn.title = 'Voice works better in full screen';
+                    }
+                }
+            }
+            
+            setupEventListeners() {
+                // Enter key to send message
+                this.inputEl.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+                
+                // Auto-focus input
+                this.inputEl.addEventListener('focus', () => {
+                    this.inputEl.style.borderColor = '#667eea';
+                });
+                
+                this.inputEl.addEventListener('blur', () => {
+                    this.inputEl.style.borderColor = '#e9ecef';
+                });
+            }
+            
+            initializeSpeechRecognition() {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    this.recognition = new SpeechRecognition();
+                    
+                    this.recognition.continuous = false;
+                    this.recognition.interimResults = true;
+                    this.recognition.lang = 'en-US';
+                    
+                    this.recognition.onstart = () => {
+                        this.isRecording = true;
+                        this.voiceBtn.classList.add('recording');
+                        this.voiceBtn.innerHTML = '⏹️';
+                        this.addMessage('Listening...', 'typing');
+                    };
+                    
+                    this.recognition.onresult = (event) => {
+                        const transcript = event.results[event.results.length - 1][0].transcript;
+                        if (event.results[event.results.length - 1].isFinal) {
+                            this.removeTypingMessage();
+                            this.inputEl.value = transcript;
+                            this.sendMessage();
+                        }
+                    };
+                    
+                    this.recognition.onend = () => {
+                        this.isRecording = false;
+                        this.voiceBtn.classList.remove('recording');
+                        this.voiceBtn.innerHTML = '🎤';
+                        this.removeTypingMessage();
+                    };
+                    
+                    this.recognition.onerror = (event) => {
+                        console.error('Speech recognition error:', event.error);
+                        this.isRecording = false;
+                        this.voiceBtn.classList.remove('recording');
+                        this.voiceBtn.innerHTML = '🎤';
+                        this.removeTypingMessage();
+                        
+                        if (isInIframe && event.error === 'not-allowed') {
+                            this.addMessage('Voice requires microphone permission. Try opening in full screen!', 'agent');
+                        }
+                    };
+                } else {
+                    // Hide voice button if not supported
+                    this.voiceBtn.style.display = 'none';
+                }
+            }
+            
+            connect() {
+                this.updateStatus('connecting', '🔄 Connecting to Travel Agent...');
+                
+                try {
+                    this.ws = new WebSocket(WEBSOCKET_URL);
+                    
+                    this.ws.onopen = () => {
+                        this.isConnected = true;
+                        this.updateStatus('connected', '✅ Connected! Start chatting with your Travel Agent');
+                        this.enableInterface();
+                    };
+                    
+                    this.ws.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            this.handleMessage(data);
+                        } catch (error) {
+                            console.error('Error parsing message:', error);
+                        }
+                    };
+                    
+                    this.ws.onclose = () => {
+                        this.isConnected = false;
+                        this.updateStatus('disconnected', '❌ Disconnected from Travel Agent');
+                        this.disableInterface();
+                        
+                        // Try to reconnect after 5 seconds
+                        setTimeout(() => {
+                            if (!this.isConnected) {
+                                this.connect();
+                            }
+                        }, 5000);
+                    };
+                    
+                    this.ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                        this.updateStatus('disconnected', '❌ Connection error occurred');
+                    };
+                } catch (error) {
+                    console.error('WebSocket connection failed:', error);
+                    this.updateStatus('disconnected', '❌ Failed to connect');
+                }
+            }
+            
+            handleMessage(data) {
+                switch (data.type) {
+                    case 'response':
+                        this.removeTypingMessage();
+                        this.addMessage(data.content, 'agent');
+                        // Only speak if not in iframe or user has interacted
+                        if (!isInIframe) {
+                            this.speakMessage(data.content);
+                        }
+                        break;
+                    case 'typing':
+                        if (data.content) {
+                            this.addMessage('Travel Agent is thinking...', 'typing');
+                        } else {
+                            this.removeTypingMessage();
+                        }
+                        break;
+                    case 'error':
+                        this.removeTypingMessage();
+                        this.addMessage('Sorry, there was an error: ' + data.content, 'agent');
+                        break;
+                }
+            }
+            
+            sendMessage() {
+                const message = this.inputEl.value.trim();
+                if (!message || !this.isConnected) return;
+                
+                // Add user message to chat
+                this.addMessage(message, 'user');
+                
+                // Send to server
+                this.ws.send(JSON.stringify({
+                    type: 'message',
+                    content: message
+                }));
+                
+                // Clear input
+                this.inputEl.value = '';
+            }
+            
+            sendSuggestion(suggestion) {
+                if (!this.isConnected) return;
+                
+                this.inputEl.value = suggestion;
+                this.sendMessage();
+            }
+            
+            toggleVoice() {
+                if (!this.recognition) return;
+                
+                if (this.isRecording) {
+                    this.recognition.stop();
+                } else {
+                    try {
+                        this.recognition.start();
+                    } catch (error) {
+                        console.error('Voice recognition failed:', error);
+                        if (isInIframe) {
+                            this.addMessage('Voice works better in full screen mode!', 'agent');
+                        }
+                    }
+                }
+            }
+            
+            speakMessage(text) {
+                // Clean text for speech (remove emojis and special characters)
+                const cleanText = text.replace(/[^\w\s.,!?-]/g, '');
+                
+                if (this.synthesis && cleanText && !isInIframe) {
+                    // Cancel any ongoing speech
+                    this.synthesis.cancel();
+                    
+                    const utterance = new SpeechSynthesisUtterance(cleanText);
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1;
+                    utterance.volume = 0.6;
+                    
+                    // Use a natural voice if available
+                    const voices = this.synthesis.getVoices();
+                    const naturalVoice = voices.find(voice => 
+                        voice.lang.startsWith('en') && 
+                        (voice.name.includes('Natural') || voice.name.includes('Neural'))
+                    ) || voices.find(voice => voice.lang.startsWith('en'));
+                    
+                    if (naturalVoice) {
+                        utterance.voice = naturalVoice;
+                    }
+                    
+                    this.synthesis.speak(utterance);
+                }
+            }
+            
+            addMessage(content, type) {
+                const messageEl = document.createElement('div');
+                messageEl.className = `message ${type}`;
+                
+                if (type === 'typing') {
+                    messageEl.innerHTML = `<span class="typing-dots"></span>`;
+                    messageEl.id = 'typing-message';
+                } else {
+                    messageEl.textContent = content;
+                }
+                
+                this.messagesEl.appendChild(messageEl);
+                this.scrollToBottom();
+            }
+            
+            removeTypingMessage() {
+                const typingMsg = document.getElementById('typing-message');
+                if (typingMsg) {
+                    typingMsg.remove();
+                }
+            }
+            
+            scrollToBottom() {
+                this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
+            }
+            
+            updateStatus(type, message) {
+                this.statusEl.className = `status ${type}`;
+                this.statusEl.textContent = message;
+            }
+            
+            enableInterface() {
+                this.inputEl.disabled = false;
+                this.sendBtn.disabled = false;
+                this.voiceBtn.disabled = false;
+                this.inputEl.focus();
+            }
+            
+            disableInterface() {
+                this.inputEl.disabled = true;
+                this.sendBtn.disabled = true;
+                this.voiceBtn.disabled = true;
+            }
+        }
+        
+        // Global functions for button clicks
+        function sendMessage() {
+            chat.sendMessage();
+        }
+        
+        function toggleVoice() {
+            chat.toggleVoice();
+        }
+        
+        function sendSuggestion(suggestion) {
+            chat.sendSuggestion(suggestion);
+        }
+        
+        // Initialize chat when page loads
+        let chat;
+        
+        window.addEventListener('load', () => {
+            chat = new TravelAgentChat();
+        });
+        
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Stop speech synthesis when tab is hidden
+                if (chat && chat.synthesis) {
+                    chat.synthesis.cancel();
+                }
+            }
+        });
+        
+        // Handle iframe communication
+        if (isInIframe) {
+            // Send height updates to parent frame
+            const sendHeight = () => {
+                const height = document.body.scrollHeight;
+                window.parent.postMessage({ type: 'resize', height }, '*');
+            };
+            
+            // Send initial height
+            setTimeout(sendHeight, 100);
+            
+            // Update height on window resize
+            window.addEventListener('resize', sendHeight);
+        }
+    </script>
+</body>
+</html>

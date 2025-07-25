@@ -1,0 +1,12 @@
+# railway.toml
+[build]
+builder = "DOCKERFILE"
+
+[deploy]
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+
+# Set environment variables
+[env]
+PYTHONUNBUFFERED = "1"
