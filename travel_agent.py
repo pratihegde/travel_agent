@@ -10,8 +10,9 @@ from typing import Dict, List
 import openai
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+import os
+if os.path.exists('.env'):
+    load_dotenv()  # Only load .env in development
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
