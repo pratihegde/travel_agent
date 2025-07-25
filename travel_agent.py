@@ -9,8 +9,13 @@ from datetime import datetime
 from typing import Dict, List
 import openai
 from dotenv import load_dotenv
-
 import os
+print("=== DEBUGGING ENVIRONMENT ===")
+print(f"OPENAI_API_KEY exists: {'OPENAI_API_KEY' in os.environ}")
+print(f"OPENAI_API_KEY value: {os.environ.get('OPENAI_API_KEY', 'NOT_FOUND')[:20]}...")
+print(f"All env vars with 'OPENAI': {[k for k in os.environ if 'OPENAI' in k]}")
+print("=============================")
+
 if os.path.exists('.env'):
     load_dotenv()  # Only load .env in development
 
@@ -29,7 +34,7 @@ class TravelAgent:
             for key in os.environ:
                 if 'OPENAI' in key or 'API' in key:
                     print(f"{key}: {os.environ[key][:10]}...")
-        raise ValueError("OPENAI_API_KEY not found in environment variables")
+            raise ValueError("OPENAI_API_KEY not found in environment variables")
         
         self.client = openai.OpenAI(api_key=api_key)
         
