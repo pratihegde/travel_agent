@@ -207,7 +207,7 @@ class TravelAgentServer:
     async def serve_chat_interface(self, request):
         """Serve the chat web interface"""
         # Get the WebSocket URL based on the request
-        scheme = 'wss' if request.scheme == 'https' else 'ws'
+        scheme = 'wss'
         ws_url = f"{scheme}://{request.host}/ws"
         
         # HTML content with dynamic WebSocket URL
