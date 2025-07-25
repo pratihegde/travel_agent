@@ -25,7 +25,11 @@ class TravelAgent:
         # Initialize OpenAI client
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
-            raise ValueError("OPENAI_API_KEY not found in environment variables")
+            print("Available environment variables:")
+            for key in os.environ:
+                if 'OPENAI' in key or 'API' in key:
+                    print(f"{key}: {os.environ[key][:10]}...")
+        raise ValueError("OPENAI_API_KEY not found in environment variables")
         
         self.client = openai.OpenAI(api_key=api_key)
         
