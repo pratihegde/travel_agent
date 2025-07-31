@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Travel Voice Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            color: #fff;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            max-width: 900px;
+            width: 100%;
+            height: 85vh;
+            min-height: 600px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            color: #fff;
+            font-size: 2em;
+            margin-bottom: 5px;
+            background: linear-gradient(135deg, #00d4ff 0%, #00a8ff 50%, #0078ff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+
+        .header p {
+            color: #a0a0a0;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .features {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(0, 120, 255, 0.1) 100%);
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            color: #b0b0b0;
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .chat-container {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            padding-right: 10px;
+        }
+
+        .messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.5);
+            border-radius: 3px;
+        }
+
+        .message {
+            margin: 12px 0;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 85%;
+            animation: slideIn 0.3s ease;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            background: linear-gradient(135deg, #00d4ff 0%, #0078ff 100%);
+            color: white;
+            align-self: flex-end;
+            margin-left: auto;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .message.agent.structured {
+            max-width: 95%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .category-section {
+            margin-bottom: 20px;
+        }
+
+        .category-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(0, 120, 255, 0.2) 100%);
+            border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+            font-weight: 600;
+            font-size: 1em;
+            color: #00d4ff;
+        }
+
+        .category-emoji {
+            font-size: 1.2em;
+            margin-right: 8px;
+        }
+
+        .category-title {
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .category-items {
+            padding: 16px;
+        }
+
+        .travel-item {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            border-left: 3px solid #00d4ff;
+            transition: all 0.3s ease;
+        }
+
+        .travel-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+
+        .travel-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: #fff;
+            font-size: 0.95em;
+            margin-bottom: 4px;
+        }
+
+        .item-description {
+            color: #b0b0b0;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+
+        .message.typing {
+            background: rgba(255, 255, 255, 0.1);
+            color: #a0a0a0;
+            font-style: italic;
+            align-self: flex-start;
+        }
+
+        .typing-dots::after {
+            content: '•••';
+            animation: typing 1.5s infinite;
+        }
+
+        @keyframes typing {
+            0%, 20% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .input-area {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            backdrop-filter: blur(10px);
+        }
+
+        .message-input::placeholder {
+            color: #666;
+        }
+
+        .message-input:focus {
+            border-color: #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .send-button, .voice-button {
+            background: linear-gradient(135deg, #00d4ff 0%, #0078ff 100%);
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 50px;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .send-button:hover, .voice-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(0, 212, 255, 0.5);
+        }
+
+        .send-button:disabled, .voice-button:disabled {
+            background: rgba(100, 100, 100, 0.5);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .voice-button.recording {
+            background: linear-gradient(135deg, #ff3838 0%, #ff6b6b 100%);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 4px 15px rgba(255, 56, 56, 0.3); }
+            50% { box-shadow: 0 6px 30px rgba(255, 56, 56, 0.6); }
+            100% { box-shadow: 0 4px 15px rgba(255, 56, 56, 0.3); }
+        }
+
+        .status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 12px;
+            margin: 8px 0;
+            font-weight: 600;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+        }
+
+        .status.connected {
+            background: linear-gradient(135deg, rgba(0, 255, 127, 0.1) 0%, rgba(0, 200, 100, 0.1) 100%);
+            color: #00ff7f;
+            border: 1px solid rgba(0, 255, 127, 0.3);
+        }
+
+        .status.disconnected {
+            background: linear-gradient(135deg, rgba(255, 56, 56, 0.1) 0%, rgba(255, 100, 100, 0.1) 100%);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 56, 56, 0.3);
+        }
+
+        .status.connecting {
+            background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, rgba(255, 167, 38, 0.1) 100%);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .quick-suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .suggestion {
+            background: rgba(0, 0, 0, 0.3);
+            color: #00d4ff;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            padding: 8px 14px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .suggestion:hover {
+            background: linear-gradient(135deg, #00d4ff 0%, #0078ff 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                height: 90vh;
+                padding: 15px;
+                border-radius: 15px;
+            }
+            
+            .header h1 {
+                font-size: 1.6em;
+            }
+            
+            .features {
+                font-size: 0.75em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎙️ Enhanced Travel Agent</h1>
+            <p>Your AI travel companion with LangChain & real-time data</p>
+            <div class="features">
+                🌤️ Real-time weather • 🍽️ Restaurant & hotel recommendations • 🗺️ Maps & distances • 💱 Currency conversion
+            </div>
+        </div>
+
+        <div id="status" class="status connecting">
+            🔄 Connecting to Enhanced Travel Agent...
+        </div>
+
+        <div class="chat-container">
+            <div id="messages" class="messages">
+                <!-- Messages will appear here -->
+            </div>
+
+            <div class="quick-suggestions">
+                <div class="suggestion" onclick="sendSuggestion('Plan a 7-day trip to Japan')">Japan itinerary</div>
+                <div class="suggestion" onclick="sendSuggestion('Weather in Paris')">Paris weather</div>
+                <div class="suggestion" onclick="sendSuggestion('Convert 1000 USD to EUR')">Currency converter</div>
+                <div class="suggestion" onclick="sendSuggestion('Best restaurants in Tokyo')">Tokyo restaurants</div>
+                <div class="suggestion" onclick="sendSuggestion('Budget travel tips for Europe')">Europe budget tips</div>
+            </div>
+
+            <div class="input-area">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    class="message-input" 
+                    placeholder="Ask me about destinations, weather, restaurants, hotels..."
+                    disabled
+                >
+                <button id="voiceButton" class="voice-button" onclick="toggleVoice()" disabled>
+                    🎤
+                </button>
+                <button id="sendButton" class="send-button" onclick="sendMessage()" disabled>
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get WebSocket URL dynamically
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const WEBSOCKET_URL = `${protocol}//${window.location.host}/ws`;
+        
+        class EnhancedTravelChat {
+            constructor() {
+                this.ws = null;
+                this.isConnected = false;
+                this.isRecording = false;
+                this.recognition = null;
+                this.synthesis = window.speechSynthesis;
+                
+                this.statusEl = document.getElementById('status');
+                this.messagesEl = document.getElementById('messages');
+                this.inputEl = document.getElementById('messageInput');
+                this.sendBtn = document.getElementById('sendButton');
+                this.voiceBtn = document.getElementById('voiceButton');
+                
+                this.setupEventListeners();
+                this.initializeSpeechRecognition();
+                this.connect();
+            }
+            
+            setupEventListeners() {
+                this.inputEl.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+            }
+            
+            initializeSpeechRecognition() {
+                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    this.recognition = new SpeechRecognition();
+                    
+                    this.recognition.continuous = false;
+                    this.recognition.interimResults = true;
+                    this.recognition.lang = 'en-US';
+                    
+                    this.recognition.onstart = () => {
+                        this.isRecording = true;
+                        this.voiceBtn.classList.add('recording');
+                        this.voiceBtn.innerHTML = '⏹️';
+                        this.addMessage('Listening...', 'typing');
+                    };
+                    
+                    this.recognition.onresult = (event) => {
+                        const transcript = event.results[event.results.length - 1][0].transcript;
+                        if (event.results[event.results.length - 1].isFinal) {
+                            this.removeTypingMessage();
+                            this.inputEl.value = transcript;
+                            this.sendMessage();
+                        }
+                    };
+                    
+                    this.recognition.onend = () => {
+                        this.isRecording = false;
+                        this.voiceBtn.classList.remove('recording');
+                        this.voiceBtn.innerHTML = '🎤';
+                        this.removeTypingMessage();
+                    };
+                    
+                    this.recognition.onerror = (event) => {
+                        console.error('Speech recognition error:', event.error);
+                        this.isRecording = false;
+                        this.voiceBtn.classList.remove('recording');
+                        this.voiceBtn.innerHTML = '🎤';
+                        this.removeTypingMessage();
+                    };
+                } else {
+                    this.voiceBtn.style.display = 'none';
+                }
+            }
+            
+            connect() {
+                this.updateStatus('connecting', '🔄 Connecting to Enhanced Travel Agent...');
+                
+                try {
+                    this.ws = new WebSocket(WEBSOCKET_URL);
+                    
+                    this.ws.onopen = () => {
+                        this.isConnected = true;
+                        this.updateStatus('connected', '✅ Connected! Enhanced Travel Agent ready');
+                        this.enableInterface();
+                    };
+                    
+                    this.ws.onmessage = (event) => {
+                        try {
+                            const data = JSON.parse(event.data);
+                            this.handleMessage(data);
+                        } catch (error) {
+                            console.error('Error parsing message:', error);
+                        }
+                    };
+                    
+                    this.ws.onclose = () => {
+                        this.isConnected = false;
+                        this.updateStatus('disconnected', '❌ Disconnected from Travel Agent');
+                        this.disableInterface();
+                        
+                        setTimeout(() => {
+                            if (!this.isConnected) {
+                                this.connect();
+                            }
+                        }, 5000);
+                    };
+                    
+                    this.ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                        this.updateStatus('disconnected', '❌ Connection error occurred');
+                    };
+                } catch (error) {
+                    console.error('WebSocket connection failed:', error);
+                    this.updateStatus('disconnected', '❌ Failed to connect');
+                }
+            }
+            
+            handleMessage(data) {
+                switch (data.type) {
+                    case 'response':
+                        this.removeTypingMessage();
+                        
+                        // Check if it's structured data
+                        if (data.content.includes('STRUCTURED_DATA_START')) {
+                            this.addStructuredMessage(data.content);
+                        } else {
+                            this.addMessage(data.content, 'agent');
+                        }
+                        
+                        this.speakMessage(data.content);
+                        break;
+                    case 'typing':
+                        if (data.content) {
+                            this.addMessage('Enhanced Travel Agent is thinking...', 'typing');
+                        } else {
+                            this.removeTypingMessage();
+                        }
+                        break;
+                    case 'error':
+                        this.removeTypingMessage();
+                        this.addMessage('Sorry, there was an error: ' + data.content, 'agent');
+                        break;
+                    case 'session_info':
+                        console.log('Session info:', data.content);
+                        break;
+                }
+            }
+            
+            addStructuredMessage(content) {
+                // Parse structured data
+                const structuredData = this.parseStructuredData(content);
+                
+                // Create beautifully formatted message
+                const messageEl = document.createElement('div');
+                messageEl.className = 'message agent structured';
+                
+                let htmlContent = '';
+                
+                for (const [category, items] of Object.entries(structuredData)) {
+                    if (items.length > 0) {
+                        const emoji = this.getCategoryEmoji(category);
+                        htmlContent += `
+                            <div class="category-section">
+                                <div class="category-header">
+                                    <span class="category-emoji">${emoji}</span>
+                                    <span class="category-title">${category}</span>
+                                </div>
+                                <div class="category-items">
+                        `;
+                        
+                        items.forEach(item => {
+                            htmlContent += `
+                                <div class="travel-item">
+                                    <div class="item-name">${item.name}</div>
+                                    ${item.description ? `<div class="item-description">${item.description}</div>` : ''}
+                                </div>
+                            `;
+                        });
+                        
+                        htmlContent += `
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                messageEl.innerHTML = htmlContent;
+                this.messagesEl.appendChild(messageEl);
+                this.scrollToBottom();
+            }
+            
+            parseStructuredData(content) {
+                const data = {};
+                const lines = content.split('\n');
+                let currentCategory = null;
+                
+                for (const line of lines) {
+                    if (line.startsWith('CATEGORY:')) {
+                        currentCategory = line.replace('CATEGORY:', '').trim();
+                        data[currentCategory] = [];
+                    } else if (line.startsWith('ITEM:') && currentCategory) {
+                        const itemData = line.replace('ITEM:', '');
+                        const [name, description] = itemData.split('|');
+                        data[currentCategory].push({
+                            name: name || '',
+                            description: description || ''
+                        });
+                    }
+                }
+                
+                return data;
+            }
+            
+            getCategoryEmoji(category) {
+                const emojiMap = {
+                    'DESTINATIONS': '🌍',
+                    'HOTELS': '🏨',
+                    'ACCOMMODATION': '🏨',
+                    'RESTAURANTS': '🍽️',
+                    'DINING': '🍽️',
+                    'ACTIVITIES': '🎯',
+                    'TRANSPORTATION': '✈️',
+                    'BUDGET': '💰',
+                    'TIMING': '🗓️',
+                    'WEATHER': '🌤️'
+                };
+                
+                for (const [key, emoji] of Object.entries(emojiMap)) {
+                    if (category.toUpperCase().includes(key)) {
+                        return emoji;
+                    }
+                }
+                
+                return '📍'; // Default emoji
+            }
+            
+            sendMessage() {
+                const message = this.inputEl.value.trim();
+                if (!message || !this.isConnected) return;
+                
+                this.addMessage(message, 'user');
+                
+                this.ws.send(JSON.stringify({
+                    type: 'message',
+                    content: message
+                }));
+                
+                this.inputEl.value = '';
+            }
+            
+            sendSuggestion(suggestion) {
+                if (!this.isConnected) return;
+                this.inputEl.value = suggestion;
+                this.sendMessage();
+            }
+            
+            toggleVoice() {
+                if (!this.recognition) return;
+                
+                if (this.isRecording) {
+                    this.recognition.stop();
+                } else {
+                    this.recognition.start();
+                }
+            }
+            
+            speakMessage(text) {
+                const cleanText = text.replace(/[^\w\s.,!?-]/g, '');
+                
+                if (this.synthesis && cleanText) {
+                    this.synthesis.cancel();
+                    
+                    const utterance = new SpeechSynthesisUtterance(cleanText);
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1;
+                    utterance.volume = 0.6;
+                    
+                    const voices = this.synthesis.getVoices();
+                    const naturalVoice = voices.find(voice => 
+                        voice.lang.startsWith('en') && 
+                        (voice.name.includes('Natural') || voice.name.includes('Neural'))
+                    ) || voices.find(voice => voice.lang.startsWith('en'));
+                    
+                    if (naturalVoice) {
+                        utterance.voice = naturalVoice;
+                    }
+                    
+                    this.synthesis.speak(utterance);
+                }
+            }
+            
+            addMessage(content, type) {
+                const messageEl = document.createElement('div');
+                messageEl.className = `message ${type}`;
+                
+                if (type === 'typing') {
+                    messageEl.innerHTML = `<span class="typing-dots"></span>`;
+                    messageEl.id = 'typing-message';
+                } else {
+                    messageEl.textContent = content;
+                }
+                
+                this.messagesEl.appendChild(messageEl);
+                this.scrollToBottom();
+            }
+            
+            removeTypingMessage() {
+                const typingMsg = document.getElementById('typing-message');
+                if (typingMsg) {
+                    typingMsg.remove();
+                }
+            }
+            
+            scrollToBottom() {
+                this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
+            }
+            
+            updateStatus(type, message) {
+                this.statusEl.className = `status ${type}`;
+                this.statusEl.textContent = message;
+            }
+            
+            enableInterface() {
+                this.inputEl.disabled = false;
+                this.sendBtn.disabled = false;
+                this.voiceBtn.disabled = false;
+                this.inputEl.focus();
+            }
+            
+            disableInterface() {
+                this.inputEl.disabled = true;
+                this.sendBtn.disabled = true;
+                this.voiceBtn.disabled = true;
+            }
+        }
+        
+        function sendMessage() {
+            chat.sendMessage();
+        }
+        
+        function toggleVoice() {
+            chat.toggleVoice();
+        }
+        
+        function sendSuggestion(suggestion) {
+            chat.sendSuggestion(suggestion);
+        }
+        
+        let chat;
+        
+        window.addEventListener('load', () => {
+            chat = new EnhancedTravelChat();
+        });
+        
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && chat && chat.synthesis) {
+                chat.synthesis.cancel();
+            }
+        });
+    </script>
+</body>
+</html>
